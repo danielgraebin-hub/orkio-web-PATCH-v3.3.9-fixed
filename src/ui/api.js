@@ -81,7 +81,8 @@ export async function apiFetch(path, options = {}) {
   const response = await fetch(url, config);
 
   if (response.status === 401) {
-    const onAuthPage = typeof window !== "undefined" && window.location.pathname.startsWith("/auth");
+    const onAuthPage =
+      typeof window !== "undefined" && window.location.pathname.startsWith("/auth");
     if (!onAuthPage) {
       clearSession();
       window.location.href = "/auth?session_expired=1";
@@ -128,7 +129,10 @@ export const deleteUser = (userId) =>
     method: "DELETE",
   });
 
-export const uploadFile = (file, { token, org, agentId = null, threadId = null, intent = null, institutionalRequest = false } = {}) => {
+export const uploadFile = (
+  file,
+  { token, org, agentId = null, threadId = null, intent = null, institutionalRequest = false } = {}
+) => {
   const form = new FormData();
   form.append("file", file);
   if (agentId) form.append("agent_id", agentId);
@@ -187,7 +191,9 @@ export async function chatStream({ token, org, onChunk, onDone, onStatus, ...pay
     }
     const rawData = dataLines.join("\n");
     let payloadData = rawData;
-    try { payloadData = JSON.parse(rawData); } catch {}
+    try {
+      payloadData = JSON.parse(rawData);
+    } catch {}
     if (event === "chunk") onChunk?.(payloadData);
     else if (event === "status") onStatus?.(payloadData);
     else if (event === "done") onDone?.(payloadData);
@@ -208,7 +214,10 @@ export async function chatStream({ token, org, onChunk, onDone, onStatus, ...pay
   return true;
 }
 
-export const transcribeAudio = async (blob, { token, org, trace_id = null, language = null } = {}) => {
+export const transcribeAudio = async (
+  blob,
+  { token, org, trace_id = null, language = null } = {}
+) => {
   const form = new FormData();
   form.append("file", blob, "audio.webm");
   if (trace_id) form.append("trace_id", trace_id);
@@ -238,11 +247,13 @@ export const resetPassword = ({ token: reset_token, password, tenant, org } = {}
   });
 
 export const validateInvestorAccessCode = ({ code, email, tenant, org } = {}) =>
-  apiFetch("/api/auth/validate-access-code", {
-    method: "POST",
-    body: { code, email, tenant },
-    org,
-  });
+  apiFetch(
+    `/api/auth/validate-access-code?code=${encodeURIComponent(code || "")}&email=${encodeURIComponent(email || "")}&tenant=${encodeURIComponent(tenant || "")}`,
+    {
+      method: "GET",
+      org,
+    }
+  );
 
 export const requestFounderHandoff = ({ token, org, ...payload } = {}) =>
   apiFetch("/api/founder/handoff", {
@@ -256,7 +267,10 @@ export const getFounderEscalations = ({ token, org } = {}) =>
   apiFetch("/api/admin/founder-escalations", { token, org });
 
 export const getFounderEscalation = ({ escalation_id, token, org } = {}) =>
-  apiFetch(`/api/admin/founder-escalations/${encodeURIComponent(escalation_id)}`, { token, org });
+  apiFetch(`/api/admin/founder-escalations/${encodeURIComponent(escalation_id)}`, {
+    token,
+    org,
+  });
 
 export const setFounderEscalationAction = ({ escalation_id, action_type, token, org } = {}) =>
   apiFetch(`/api/admin/founder-escalations/${encodeURIComponent(escalation_id)}/action`, {
@@ -307,10 +321,15 @@ export const endRealtimeSession = ({ token, org, session_id, ...payload } = {}) 
   });
 
 export const getRealtimeSession = ({ token, org, session_id, finals_only = false } = {}) =>
-  apiData(`/api/realtime/sessions/${encodeURIComponent(session_id)}?finals_only=${finals_only ? "true" : "false"}`, {
-    token,
-    org,
-  });
+  apiData(
+    `/api/realtime/sessions/${encodeURIComponent(session_id)}?finals_only=${
+      finals_only ? "true" : "false"
+    }`,
+    {
+      token,
+      org,
+    }
+  );
 
 export const getSummitSessionScore = ({ token, org, session_id } = {}) =>
   apiFetch(`/api/summit/sessions/${encodeURIComponent(session_id)}/score`, {
@@ -327,11 +346,14 @@ export const submitSummitSessionReview = ({ token, org, session_id, ...payload }
   });
 
 export const downloadRealtimeAta = async ({ token, org, session_id } = {}) => {
-  const response = await fetch(joinApi(`/api/realtime/sessions/${encodeURIComponent(session_id)}/ata.txt`), {
-    method: "GET",
-    headers: headers({ token, org, json: false }),
-    credentials: "include",
-  });
+  const response = await fetch(
+    joinApi(`/api/realtime/sessions/${encodeURIComponent(session_id)}/ata.txt`),
+    {
+      method: "GET",
+      headers: headers({ token, org, json: false }),
+      credentials: "include",
+    }
+  );
   if (!response.ok) {
     const text = await response.text().catch(() => "");
     throw new Error(`API error ${response.status}: ${text}`);
